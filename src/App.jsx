@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { CiStar } from "react-icons/ci";
 import { FaStar } from "react-icons/fa";
+import "./App.css"; // Adding external CSS
 
 let nextId = 0;
 function App() {
@@ -17,6 +18,7 @@ function App() {
       )
     );
   };
+
   const handleAdd = () => {
     if (editId !== null) {
       setArtists(
@@ -25,8 +27,8 @@ function App() {
         )
       );
       setEditId(null);
-    }else{
-      setArtists([...artists, { id: nextId++, name: name, checked: false, impotent: false }]);
+    } else {
+      setArtists([...artists, { id: nextId++, name, impotent: false, checked: false }]);
     }
     setName("");
   };
@@ -52,47 +54,69 @@ function App() {
   };
 
   return (
-    <div>
+    <div className="app-container">
       <center>
-        {showmessage === false ? "Task Not Completed" : "Completed"}
-        <h1>Todo List</h1>
-        <input value={name} onChange={(e) => setName(e.target.value)} />
-        <button onClick={handleAdd}>{editId !== null ? "Update" : "ADD"}</button>
-        <button onClick={handleReverse}>Reverse</button>
-        <ul>
-          {artists.map((artist) => (
-            <li
-              style={{
-                textDecoration: artist.checked ? "line-through" : "none",
-              }}
-              key={artist.id}
-            >
-              {artist.impotent ? (
-                <i>
-                  <FaStar onClick={() => handleImpotent(artist.id)} />
-                </i>
-              ) : (
-                <i>
-                  <CiStar onClick={() => handleImpotent(artist.id)} />
-                </i>
-              )}
-              <input
-                type="checkbox"
-                checked={artist.checked}
-                onChange={() => handleCheck(artist.id)}
-              />
-              {artist.name}
-              <button
-                onClick={() => {
-                  setArtists(artists.filter((a) => a.id !== artist.id));
-                }}
+        <div className="todo-box">
+          <h1 className="heading">Todo List</h1>
+          {showmessage === false ? (
+            <p className="status-message">Task Not Completed</p>
+          ) : (
+            <p className="status-message completed">Completed</p>
+          )}
+          <input
+            className="todo-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter a task..."
+          />
+          <div className="buttons">
+            <button onClick={handleAdd} className="add-btn">
+              {editId !== null ? "Update" : "ADD"}
+            </button>
+            <button onClick={handleReverse} className="reverse-btn">
+              Reverse
+            </button>
+          </div>
+          <ul className="todo-list">
+            {artists.map((artist) => (
+              <li
+                className={`todo-item ${
+                  artist.checked ? "checked-item" : ""
+                }`}
+                key={artist.id}
               >
-                Delete
-              </button>
-              <button onClick={() => handleEdit(artist)}>Edit</button>
-            </li>
-          ))}
-        </ul>
+                {artist.impotent ? (
+                  <FaStar
+                    className="important-icon"
+                    onClick={() => handleImpotent(artist.id)}
+                  />
+                ) : (
+                  <CiStar
+                    className="important-icon"
+                    onClick={() => handleImpotent(artist.id)}
+                  />
+                )}
+                <input
+                  type="checkbox"
+                  checked={artist.checked}
+                  onChange={() => handleCheck(artist.id)}
+                />
+                {artist.name}
+                <button
+                  className="delete-btn"
+                  onClick={() => {
+                    setArtists(artists.filter((a) => a.id !== artist.id));
+                  }}
+                >
+                  Delete
+                </button>
+                <button className="edit-btn" onClick={() => handleEdit(artist)}>
+                  Edit
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       </center>
     </div>
   );
