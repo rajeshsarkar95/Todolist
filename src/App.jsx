@@ -1,15 +1,48 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CiStar } from "react-icons/ci";
 import { FaStar } from "react-icons/fa";
-import "./App.css"; // Adding external CSS
+import "./App.css";
 
 let nextId = 0;
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
 function App() {
+  const [text, setText] = useState("");
+  const [isListening, setIsListening] = useState("");
   const [name, setName] = useState("");
   const [artists, setArtists] = useState([]);
   const [editId, setEditId] = useState(null);
   const [showmessage, setShowmessage] = useState(false);
+  const [isReversed, setIsReversed] = useState(false);
+
+  const recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = "en-US";
+
+  const startListening = () => {
+    setIsListening(true);
+    recognition.start();
+    setIsListening("")
+  };
+
+  const stopListening = () => {
+    setIsListening(false);
+    recognition.stop();
+    setIsListening("")
+  };
+
+  recognition.onresult = (event) => {
+    const transcript = Array.from(event.results)
+      .map((result) => result[0].transcript)
+      .join("");
+    setText(transcript);
+  };
+
+  recognition.onerror = (event) => {
+    console.error(event.error);
+  };
 
   const handleImpotent = (id) => {
     setArtists(
@@ -28,7 +61,10 @@ function App() {
       );
       setEditId(null);
     } else {
-      setArtists([...artists, { id: nextId++, name, impotent: false, checked: false }]);
+      setArtists([
+        ...artists,
+        { id: nextId++, name, impotent: false, checked: false },
+      ]);
     }
     setName("");
   };
@@ -37,6 +73,7 @@ function App() {
     const nextList = [...artists];
     nextList.reverse();
     setArtists(nextList);
+    setIsReversed(!isReversed);
   };
 
   const handleEdit = (artist) => {
@@ -53,6 +90,26 @@ function App() {
     setShowmessage(artists.length > 0);
   };
 
+  useEffect(() => {
+    const storedArtists = JSON.parse(localStorage.getItem("todos"));
+    const storedIsReversed = JSON.parse(localStorage.getItem("isReversed"));
+
+    if (storedArtists && storedArtists.length > 0) {
+      setArtists(storedArtists);
+    }
+    if (storedIsReversed) {
+      setIsReversed(storedIsReversed);
+      if (storedIsReversed) {
+        setArtists((prev) => [...prev].reverse());
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(artists));
+    localStorage.setItem("isReversed", JSON.stringify(isReversed));
+  }, [artists, isReversed]);
+
   return (
     <div className="app-container">
       <center>
@@ -65,7 +122,7 @@ function App() {
           )}
           <input
             className="todo-input"
-            value={name}
+            value={name || text}
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter a task..."
           />
@@ -80,9 +137,7 @@ function App() {
           <ul className="todo-list">
             {artists.map((artist) => (
               <li
-                className={`todo-item ${
-                  artist.checked ? "checked-item" : ""
-                }`}
+                className={`todo-item ${artist.checked ? "checked-item" : ""}`}
                 key={artist.id}
               >
                 {artist.impotent ? (
@@ -116,6 +171,12 @@ function App() {
               </li>
             ))}
           </ul>
+          <button onClick={startListening} disabled={isListening}>
+            start speek
+          </button>
+          <button onClick={stopListening} disabled={!isListening}>
+            stop speeck
+          </button>
         </div>
       </center>
     </div>
